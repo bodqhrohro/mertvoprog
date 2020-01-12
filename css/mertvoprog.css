@@ -1,0 +1,57 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+
+.bone-container {
+	width: 100vw;
+	height: 100vh;
+}
+
+.bone-area {
+	width: 10000px;
+	height: 10000px;
+	position: relative;
+}
+
+.bone-menu {
+	display: flex;
+	visibility: hidden;
+	position: fixed;
+	transform: scale(0.5) translate(-50%, -50%);
+	z-index: -1;
+	border: 1px solid black;
+	font-size: 0;
+}
+
+.bone-menu-visible {
+	visibility: visible;
+	z-index: 1;
+}
+
+.bone-menu-item {
+	border: 1px solid transparent;
+	background: #fff;
+}
+
+.bone-menu-item:hover {
+	border: 1px solid black;
+	background: #ccc;
+}
+
+.bone-object {
+	position: absolute;
+}
+
+.bone-object:hover:after {
+	display: block;
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	background: rgba(0, 0, 0, .2);
+	content: "";
+	top: calc(50% - 20px);
+	left: calc(50% - 20px);
+	border-radius: 20px;
+	pointer-events: none;
+}
