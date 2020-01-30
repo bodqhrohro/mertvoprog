@@ -1,14 +1,32 @@
 window.addEventListener('load', () => {
 	const boneMenu = document.querySelector('.bone-menu');
 	const boneArea = document.querySelector('.bone-area');
+	const boneButtonRun = document.querySelector('.bone-button-run');
 
 	const DRAG_RADIUS = 20;
 	const ROTATE_REGEX = /transform(\([0-9-]+\)deg)/;
+	const BONE_TYPE_REGEX = /img\/([a-z]+)\.svg/;
+	const LANG = 'UA';
+
+	const tr = {
+		'UA': {
+			boneLfemur: "простий з'єднувач (ненульова гілка)",
+			boneRfemur: "простий з'єднувач (нульова гілка)",
+			boneLbrachial: "додавач",
+			boneRbrachial: "віднімач",
+			boneLforearm: "початок",
+			boneRforearm: "кінець",
+			boneSkull: "пожирач",
+			bonePelvis: "висирач",
+
+			error: "Помилка",
+			errOrphanNode: "Вузол без з'єднувача",
+		},
+	};
 
 	let dragX = undefined;
 	let dragY = undefined;
-	let centerX = undefined;
-	let centerY = undefined;
+	let center = undefined;
 	let startDegree = undefined;
 	let dragged = undefined;
 	let rotated = undefined;
@@ -21,7 +39,32 @@ window.addEventListener('load', () => {
 	const updateDegree = (bone, degree) => {
 		bone.style.transform = 'rotate(' + degree + 'deg)';
 		bone.dataset.degree = degree;
-	}
+	};
+
+	const boneType = (bone) => BONE_TYPE_REGEX.exec(bone.children[0].getAttribute('src'))[1];
+
+	const getBoneCenter = (bone) => ({
+		x: bone.offsetLeft + bone.clientWidth / 2,
+		y: bone.offsetTop + bone.clientHeight / 2,
+	});
+
+	const rotatePoint = (point, degree, center) => {
+		const radians = degree * Math.PI / 180;
+		const sin = Math.sin(radians);
+		const cos = Math.cos(radians);
+		const offsetX = point.x - center.x;
+		const offsetY = point.y - center.y;
+		return {
+			x: center.x + offsetX * cos - offsetY * sin,
+			y: center.y + offsetX * sin + offsetY * cos,
+		};
+	};
+
+	const distanceXY = (point1, point2) => {
+		const distX = point2.x - point1.x;
+		const distY = point2.y - point1.y;
+		return Math.sqrt(distX * distX + distY * distY);
+	};
 
 	// UI
 	const newBone = (proto, x, y, degree) => {
@@ -44,6 +87,18 @@ window.addEventListener('load', () => {
 
 	const hideBoneMenu = () => {
 		boneMenu.classList.remove('bone-menu-visible');
+	};
+
+	const boneError = (error, bone) => {
+		bone.classList.add('bone-error');
+		bone.scrollIntoView();
+		alert(tr[LANG]['error'] + ': ' + tr[LANG][error]);
+	};
+
+	const clearBoneErrors = () => {
+		for (let bone of document.querySelectorAll('.bone-error')) {
+			bone.classList.remove('bone-error');
+		}
 	};
 
 	// storage
@@ -78,6 +133,119 @@ window.addEventListener('load', () => {
 		}
 	};
 
+	// graph
+	const getNearestNode = (point, nodes) => {
+		let minDistance = Number.MAX_VALUE;
+		let nearestNode = null;
+		for (let node of nodes) {
+			const distance = distanceXY(point, node.center);
+			if (distance < minDistance) {
+				nearestNode = node;
+				minDistance = distance;
+			}
+		}
+		return nearestNode;
+	};
+
+	const getConnectorVertices = (bone, type) => {
+		// nw:se
+		if (type === 'rfemur' || type === 'lforearm') {
+			return {
+				start: {
+					x: bone.offsetLeft,
+					y: bone.offsetTop,
+				},
+				end: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: bone.offsetTop + bone.clientHeight,
+				},
+			};
+		}
+		// ne:sw
+		else if (type === 'lfemur' || type === 'rforearm') {
+			return {
+				start: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: bone.offsetTop,
+				},
+				end: {
+					x: bone.offsetLeft,
+					y: bone.offsetTop + bone.clientHeight,
+				},
+			};
+		}
+		// se:ne
+		else if (type === 'lbrachial') {
+			return {
+				start: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: bone.offsetTop + bone.clientHeight,
+				},
+				end: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: bone.offsetTop,
+				},
+			};
+		}
+		// sw:nw
+		else if (type === 'rbrachial') {
+			return {
+				start: {
+					x: bone.offsetLeft,
+					y: bone.offsetTop + bone.clientHeight,
+				},
+				end: {
+					x: bone.offsetLeft,
+					y: bone.offsetTop,
+				},
+			};
+		}
+	};
+
+	const bonesToCircuit = () => {
+		const bones = [...boneArea.children];
+		const connectors = [];
+		const nodes = [];
+
+		// collect nodes and connectors
+		bones.forEach(bone => {
+			const type = boneType(bone);
+			if (type === 'skull' || type == 'pelvis') {
+				const node = {
+					bone: bone,
+					center: getBoneCenter(bone),
+				};
+				nodes.push(node);
+			} else {
+				const vertices = getConnectorVertices(bone, type);
+				const center = getBoneCenter(bone);
+				const degree = +bone.dataset.degree;
+				const connector = {
+					bone: bone,
+					start: rotatePoint(vertices.start, degree, center),
+					end: rotatePoint(vertices.end, degree, center),
+				};
+				connectors.push(connector);
+			}
+		});
+		// connect nodes to edges
+		connectors.forEach(connector => {
+			connector.startNode = getNearestNode(connector.start, nodes);
+			connector.endNode = getNearestNode(connector.end, nodes);
+		});
+		// check for orphan nodes
+		nodeLoop:
+		for (let node of nodes) {
+			for (let connector of connectors) {
+				if (connector.startNode === node || connector.endNode === node) {
+					continue nodeLoop;
+				}
+			}
+			boneError("errOrphanNode", node.bone);
+			return;
+		}
+	}
+
 	// handlers
 	boneArea.addEventListener('contextmenu', (e) => {
 		if (e.target.classList && e.target.classList.contains('bone-object-img')) {
@@ -99,14 +267,18 @@ window.addEventListener('load', () => {
 		hideBoneMenu();
 	});
 
+	boneButtonRun.addEventListener('click', () => {
+		clearBoneErrors();
+		bonesToCircuit();
+	});
+
 	boneArea.addEventListener('mousedown', (e) => {
 		if (e.target.classList && e.target.classList.contains('bone-object-img')) {
 			const bone = e.target.parentNode;
-			centerX = bone.offsetLeft + bone.clientWidth / 2;
-			centerY = bone.offsetTop + bone.clientHeight / 2;
+			center = getBoneCenter(bone);
 
-			const offsetX = e.pageX - boneArea.offsetLeft - centerX;
-			const offsetY = e.pageY - boneArea.offsetTop - centerY;
+			const offsetX = e.pageX - boneArea.offsetLeft - center.x;
+			const offsetY = e.pageY - boneArea.offsetTop - center.y;
 
 			dragX = e.pageX - bone.offsetLeft;
 			dragY = e.pageY - bone.offsetTop;
@@ -131,8 +303,8 @@ window.addEventListener('load', () => {
 		} else if (rotated !== undefined) {
 			const oldDegree = rotated.dataset.oldDegree || 0;
 
-			const offsetX = e.pageX - boneArea.offsetLeft - centerX;
-			const offsetY = e.pageY - boneArea.offsetTop - centerY;
+			const offsetX = e.pageX - boneArea.offsetLeft - center.x;
+			const offsetY = e.pageY - boneArea.offsetTop - center.y;
 
 			const curDegree = Math.atan2(-offsetX, offsetY) / Math.PI * 180;
 			const degree = fitAngle(curDegree - startDegree);
@@ -142,14 +314,17 @@ window.addEventListener('load', () => {
 	boneArea.addEventListener('mouseup', (e) => {
 		dragX = undefined;
 		dragY = undefined;
-		centerX = undefined;
-		centerY = undefined;
+		center = undefined;
 		startDegree = undefined;
 		dragged = undefined;
 		rotated = undefined;
 	});
 
 	// init
+	for (let bone of boneMenu.children) {
+		const type = boneType(bone);
+		bone.children[0].title = tr[LANG]['bone' + type.charAt(0).toUpperCase() + type.slice(1)];
+	}
 	unserialize();
 	window.setInterval(serialize, 5000);
 });

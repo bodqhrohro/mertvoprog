@@ -55,3 +55,28 @@ body {
 	border-radius: 20px;
 	pointer-events: none;
 }
+
+.bone-button-run {
+	position: fixed;
+	bottom: 4em;
+	right: 4em;
+	width: 4em;
+	height: 4em;
+	line-height: 4em;
+	border-radius: 2em;
+	background-color: forestgreen;
+	color: white;
+	text-align: center;
+	box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.4);
+	font-size: 1em;
+	user-select: none;
+	cursor: pointer;
+}
+
+.bone-button-run:hover {
+	box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4) inset;
+}
+
+.bone-error {
+	filter: brightness(0.8) contrast(1.5) hue-rotate(310deg);
+}
