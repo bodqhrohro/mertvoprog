@@ -1,5 +1,6 @@
 window.addEventListener('load', () => {
 	const boneMenu = document.querySelector('.bone-menu');
+	const boneContainer = document.querySelector('.bone-container');
 	const boneArea = document.querySelector('.bone-area');
 	const boneButtonRun = document.querySelector('.bone-button-run');
 
@@ -262,7 +263,12 @@ window.addEventListener('load', () => {
 
 	boneMenu.addEventListener('click', (e) => {
 		if (e.target.tagName === 'IMG') {
-			newBone(e.target, boneMenu.style.left, boneMenu.style.top, 0);
+			newBone(
+				e.target,
+				parseInt(boneMenu.style.left) + boneContainer.scrollLeft + 'px',
+				parseInt(boneMenu.style.top) + boneContainer.scrollTop + 'px',
+				0
+			);
 		}
 		hideBoneMenu();
 	});
