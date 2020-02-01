@@ -22,6 +22,11 @@ window.addEventListener('load', () => {
 
 			error: "Помилка",
 			errOrphanNode: "Вузол без з'єднувача",
+			errLoopConnector: "З'єднувач-самоковтайко",
+			errNoStart: "Нема початкового вузла",
+			errManyStarts: "Зайвий початковий вузол",
+			errManyOutputs: "Зайві виходи",
+			errPelvisInputRequired: "Нема що висирати",
 		},
 	};
 
@@ -91,8 +96,10 @@ window.addEventListener('load', () => {
 	};
 
 	const boneError = (error, bone) => {
-		bone.classList.add('bone-error');
-		bone.scrollIntoView();
+		if (bone) {
+			bone.classList.add('bone-error');
+			bone.scrollIntoView();
+		}
 		alert(tr[LANG]['error'] + ': ' + tr[LANG][error]);
 	};
 
@@ -234,18 +241,79 @@ window.addEventListener('load', () => {
 			connector.startNode = getNearestNode(connector.start, nodes);
 			connector.endNode = getNearestNode(connector.end, nodes);
 		});
-		// check for orphan nodes
-		nodeLoop:
+
+		return [
+			nodes,
+			connectors,
+		];
+	};
+
+	const validateCircuit = (nodes, connectors) => {
+		// check for loops
+		for (let connector of connectors) {
+			if (connector.startNode === connector.endNode) {
+				return {
+					error: 'errLoopConnector',
+					errorBone: connector.bone,
+				};
+			}
+		}
+
+		// validate node adjoints
+		let startNode = null;
 		for (let node of nodes) {
+			let inputs = [];
+			let outputs = [];
+			const type = boneType(node.bone);
 			for (let connector of connectors) {
-				if (connector.startNode === node || connector.endNode === node) {
-					continue nodeLoop;
+				if (connector.endNode === node) {
+					inputs.push(connector);
+				}
+				else if (connector.startNode === node) {
+					outputs.push(connector);
 				}
 			}
-			boneError("errOrphanNode", node.bone);
-			return;
+			if (!inputs.length && !outputs.length) {
+				return {
+					error: 'errOrphanNode',
+					errorBone: node.bone,
+				};
+			}
+			// no multi-output nodes for now
+			if (outputs.length > 1) {
+				return {
+					error: 'errManyOutputs',
+					errorBone: node.bone,
+				};
+			}
+			if (!inputs.length) {
+				if (type === 'pelvis') {
+					return {
+						error: 'errPelvisInputRequired',
+						errorBone: node.bone,
+					};
+				}
+
+				if (startNode) {
+					return {
+						error: 'errManyStarts',
+						errorBone: node.bone,
+					};
+				} else {
+					startNode = node;
+				}
+			}
 		}
-	}
+		if (!startNode) {
+			return {
+				error: 'errNoStart',
+			};
+		}
+
+		return {
+			startNode,
+		};
+	};
 
 	// handlers
 	boneArea.addEventListener('contextmenu', (e) => {
@@ -275,7 +343,12 @@ window.addEventListener('load', () => {
 
 	boneButtonRun.addEventListener('click', () => {
 		clearBoneErrors();
-		bonesToCircuit();
+		[nodes, connectors] = bonesToCircuit();
+		let circuit = validateCircuit(nodes, connectors);
+		if (circuit.error) {
+			boneError(circuit.error, circuit.errorBone);
+			return;
+		}
 	});
 
 	boneArea.addEventListener('mousedown', (e) => {
