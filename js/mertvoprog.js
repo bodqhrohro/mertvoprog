@@ -356,11 +356,14 @@ window.addEventListener('load', () => {
 			const bone = e.target.parentNode;
 			center = getBoneCenter(bone);
 
-			const offsetX = e.pageX - boneArea.offsetLeft - center.x;
-			const offsetY = e.pageY - boneArea.offsetTop - center.y;
+			const relativePageX = e.pageX + boneContainer.scrollLeft;
+			const relativePageY = e.pageY + boneContainer.scrollTop;
 
-			dragX = e.pageX - bone.offsetLeft;
-			dragY = e.pageY - bone.offsetTop;
+			const offsetX = relativePageX - center.x;
+			const offsetY = relativePageY - center.y;
+
+			dragX = relativePageX - bone.offsetLeft;
+			dragY = relativePageY - bone.offsetTop;
 			const radius = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
 
 			if (radius > DRAG_RADIUS) {
@@ -375,15 +378,18 @@ window.addEventListener('load', () => {
 		}
 	});
 	boneArea.addEventListener('mousemove', (e) => {
+		const relativePageX = e.pageX + boneContainer.scrollLeft;
+		const relativePageY = e.pageY + boneContainer.scrollTop;
+
 		if (dragged !== undefined) {
-			dragged.style.left = e.pageX - boneArea.offsetLeft - dragX + 'px';
-			dragged.style.top = e.pageY - boneArea.offsetTop - dragY + 'px';
+			dragged.style.left = relativePageX - dragX + 'px';
+			dragged.style.top = relativePageY - dragY + 'px';
 			e.preventDefault();
 		} else if (rotated !== undefined) {
 			const oldDegree = rotated.dataset.oldDegree || 0;
 
-			const offsetX = e.pageX - boneArea.offsetLeft - center.x;
-			const offsetY = e.pageY - boneArea.offsetTop - center.y;
+			const offsetX = relativePageX - center.x;
+			const offsetY = relativePageY - center.y;
 
 			const curDegree = Math.atan2(-offsetX, offsetY) / Math.PI * 180;
 			const degree = fitAngle(curDegree - startDegree);
