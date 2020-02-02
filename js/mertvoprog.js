@@ -72,6 +72,44 @@ window.addEventListener('load', () => {
 		return Math.sqrt(distX * distX + distY * distY);
 	};
 
+	const isString = s => typeof s === 'string' || s instanceof String;
+
+	// commands
+	const commandAdd = (value, diff) => {
+		const addNumber = (value, diff) => {
+			const isChar = isString(value);
+			let number = isChar ? value.charCodeAt(0) : value;
+			number += diff;
+			return isChar ? String.fromCharCode(number) : number;
+		};
+
+		if (Array.isArray(value)) {
+			return value.map(v => addNumber(v, diff));
+		}
+		else if (isString(value)) {
+			return [...value].map(v => addNumber(v, diff)).join('');
+		}
+		else {
+			return addNumber(value, diff);
+		}
+
+		return undefined;
+	};
+	const commandHead = (value) => {
+		if (Array.isArray(value) || isString(value)) {
+			return value[0];
+		} else {
+			return value;
+		}
+	};
+	const commandTail = (value) => {
+		if (Array.isArray(value) || isString(value)) {
+			return value[value.length-1];
+		} else {
+			return value;
+		}
+	};
+
 	// UI
 	const newBone = (proto, x, y, degree) => {
 		const newImg = proto.cloneNode();
@@ -220,7 +258,8 @@ window.addEventListener('load', () => {
 			const type = boneType(bone);
 			if (type === 'skull' || type == 'pelvis') {
 				const node = {
-					bone: bone,
+					bone,
+					type,
 					center: getBoneCenter(bone),
 				};
 				nodes.push(node);
@@ -229,7 +268,8 @@ window.addEventListener('load', () => {
 				const center = getBoneCenter(bone);
 				const degree = +bone.dataset.degree;
 				const connector = {
-					bone: bone,
+					bone,
+					type,
 					start: rotatePoint(vertices.start, degree, center),
 					end: rotatePoint(vertices.end, degree, center),
 				};
@@ -264,7 +304,6 @@ window.addEventListener('load', () => {
 		for (let node of nodes) {
 			let inputs = [];
 			let outputs = [];
-			const type = boneType(node.bone);
 			for (let connector of connectors) {
 				if (connector.endNode === node) {
 					inputs.push(connector);
@@ -285,9 +324,13 @@ window.addEventListener('load', () => {
 					error: 'errManyOutputs',
 					errorBone: node.bone,
 				};
+			} else if (outputs.length > 0) {
+				node.nextConnector = outputs[0];
+			} else {
+				node.nextConnector = null;
 			}
 			if (!inputs.length) {
-				if (type === 'pelvis') {
+				if (node.type === 'pelvis') {
 					return {
 						error: 'errPelvisInputRequired',
 						errorBone: node.bone,
@@ -312,7 +355,56 @@ window.addEventListener('load', () => {
 
 		return {
 			startNode,
+			nodes,
+			connectors,
 		};
+	};
+
+	const executeCircuit = (circuit) => {
+		let currentBone = circuit.startNode;
+		for (;;) {
+			// process node
+			switch (currentBone.type) {
+				case 'skull':
+					currentBone.value = prompt();
+				break;
+				case 'pelvis':
+					alert(currentBone.value);
+				break;
+			}
+
+			const prevNode = currentBone;
+			if (currentBone.nextConnector) {
+				currentBone = currentBone.nextConnector;
+			} else {
+				break;
+			}
+
+			// process next connector
+			const nextNode = currentBone.endNode;
+			switch (currentBone.type) {
+				case 'lfemur':
+				case 'rfemur':
+					// noop
+					nextNode.value = prevNode.value;
+				break;
+				case 'lbrachial':
+					nextNode.value = commandAdd(prevNode.value, 1);
+				break;
+				case 'rbrachial':
+					nextNode.value = commandAdd(prevNode.value, -1);
+				break;
+				case 'lforearm':
+					nextNode.value = commandHead(prevNode.value);
+				break;
+				case 'rforearm':
+					nextNode.value = commandTail(prevNode.value);
+				break;
+			}
+
+			// pick next node
+			currentBone = nextNode;
+		}
 	};
 
 	// handlers
@@ -349,6 +441,7 @@ window.addEventListener('load', () => {
 			boneError(circuit.error, circuit.errorBone);
 			return;
 		}
+		executeCircuit(circuit);
 	});
 
 	boneArea.addEventListener('mousedown', (e) => {
