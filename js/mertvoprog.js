@@ -360,13 +360,20 @@ window.addEventListener('load', () => {
 		};
 	};
 
-	const executeCircuit = (circuit) => {
+	const setNodeValue = (node, value, debug) => {
+		node.value = value;
+		if (debug) {
+			node.bone.children[0].title = value;
+		}
+	};
+
+	const executeCircuit = (circuit, debug) => {
 		let currentBone = circuit.startNode;
 		for (;;) {
 			// process node
 			switch (currentBone.type) {
 				case 'skull':
-					currentBone.value = prompt();
+					setNodeValue(currentBone, prompt(), debug);
 				break;
 				case 'pelvis':
 					alert(currentBone.value);
@@ -386,25 +393,37 @@ window.addEventListener('load', () => {
 				case 'lfemur':
 				case 'rfemur':
 					// noop
-					nextNode.value = prevNode.value;
+					setNodeValue(nextNode, prevNode.value, debug);
 				break;
 				case 'lbrachial':
-					nextNode.value = commandAdd(prevNode.value, 1);
+					setNodeValue(nextNode, commandAdd(prevNode.value, 1), debug);
 				break;
 				case 'rbrachial':
-					nextNode.value = commandAdd(prevNode.value, -1);
+					setNodeValue(nextNode, commandAdd(prevNode.value, -1), debug);
 				break;
 				case 'lforearm':
-					nextNode.value = commandHead(prevNode.value);
+					setNodeValue(nextNode, commandHead(prevNode.value), debug);
 				break;
 				case 'rforearm':
-					nextNode.value = commandTail(prevNode.value);
+					setNodeValue(nextNode, commandTail(prevNode.value), debug);
 				break;
 			}
 
 			// pick next node
 			currentBone = nextNode;
 		}
+	};
+
+	const playCircuit = function(debug = false) {
+		clearBoneErrors();
+
+		[nodes, connectors] = bonesToCircuit();
+		let circuit = validateCircuit(nodes, connectors);
+		if (circuit.error) {
+			boneError(circuit.error, circuit.errorBone);
+			return;
+		}
+		executeCircuit(circuit, debug);
 	};
 
 	// handlers
@@ -434,14 +453,23 @@ window.addEventListener('load', () => {
 	});
 
 	boneButtonRun.addEventListener('click', () => {
-		clearBoneErrors();
-		[nodes, connectors] = bonesToCircuit();
-		let circuit = validateCircuit(nodes, connectors);
-		if (circuit.error) {
-			boneError(circuit.error, circuit.errorBone);
-			return;
-		}
-		executeCircuit(circuit);
+		boneButtonRun.innerHTML = '►';
+
+		setTimeout(() => {
+			playCircuit();
+
+			boneButtonRun.innerHTML = '';
+		}, 0);
+	});
+	boneButtonRun.addEventListener('contextmenu', (e) => {
+		e.preventDefault();
+		boneButtonRun.innerHTML = '⏯';
+
+		setTimeout(() => {
+			playCircuit(true);
+
+			boneButtonRun.innerHTML = '';
+		}, 0);
 	});
 
 	boneArea.addEventListener('mousedown', (e) => {
