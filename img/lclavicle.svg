@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="29.158045mm"
+   height="7.2441654mm"
+   viewBox="0 0 29.158045 7.2441654"
+   version="1.1"
+   id="svg3201"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="lclavicle.svg">
+  <defs
+     id="defs3195" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="-464.89818"
+     inkscape:cy="-463.4531"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1225"
+     inkscape:window-height="768"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata3198">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-39.849549,-18.967202)">
+    <path
+       style="fill:#fff9ec;stroke:#000000;stroke-width:0.26458332"
+       inkscape:connector-curvature="0"
+       id="path325"
+       d="m 68.792397,21.119889 c 0.06138,-0.156369 0.09154,-0.321204 0.0807,-0.475192 -0.06085,-0.902494 -1.238779,-1.353608 -1.999456,-1.437481 -0.827353,-0.09128 -1.675871,-0.13044 -2.507457,-0.09446 -1.791229,0.07699 -3.581664,0.341577 -5.339291,0.683683 -0.584465,0.113771 -1.173692,0.2286 -1.744134,0.401373 -1.224756,0.370946 -2.567781,0.761471 -3.63855,1.395677 -0.298714,0.176742 -0.603514,0.344487 -0.917839,0.510117 -0.611452,0.322262 -1.199357,0.72046 -1.871134,0.908579 -0.601927,0.168539 -1.296987,0.300566 -1.919817,0.382323 -0.785018,0.102923 -1.561041,0.07435 -2.370402,0.07435 -0.603779,0 -1.178983,-0.05503 -1.75207,-0.111919 -0.156901,-0.01561 -0.313535,-0.03149 -0.470168,-0.0463 -0.949325,-0.08969 -1.780381,-0.396875 -2.743994,-0.374386 -0.806714,0.01905 -1.148292,0.605102 -1.455737,1.293284 -0.115623,0.258233 -0.242094,0.450056 -0.09816,0.728927 0.212725,0.412485 0.945621,0.539221 1.340379,0.670983 0.50853,0.170127 1.062567,0.381265 1.568715,0.442648 0.500327,0.06059 0.951442,-0.318029 1.397529,-0.477838 0.780256,-0.2794 1.564746,-0.429154 2.408767,-0.438943 0.889794,-0.01032 1.727994,0.174625 2.611173,0.172773 0.947737,-0.0021 1.792552,-0.366977 2.619904,-0.791898 1.390121,-0.71464 2.664354,-1.646502 4.109244,-2.255573 1.438804,-0.60669 3.01281,-1.028436 4.552685,-1.278202 0.92075,-0.14949 1.84785,-0.297127 2.779713,-0.303742 1.092464,-0.0079 1.316831,-0.0254 2.349235,0.1905 0.363273,0.07594 0.758561,0.277548 1.058334,0.496094 0.329671,0.240241 0.718344,0.505883 1.171046,0.436827 0.356129,-0.05397 0.646113,-0.357188 0.780785,-0.702204 z" />
+  </g>
+</svg>

@@ -21,6 +21,8 @@ window.addEventListener('load', () => {
 			bonePelvis: "висирач",
 			boneLpatella: "забувач",
 			boneRpatella: "пам'ятач",
+			boneLclavicle: "вичисляч",
+			boneRclavicle: "вирядкувач",
 
 			error: "Помилка",
 			errOrphanNode: "Вузол без з'єднувача",
@@ -127,6 +129,24 @@ window.addEventListener('load', () => {
 			return value[value.length-1];
 		} else {
 			return value;
+		}
+	};
+	const commandToNumbers = (value) => {
+		if (isString(value)) {
+			return [...value].map(v => v.charCodeAt(0));
+		} else {
+			return value;
+		}
+	};
+	const commandToString = (value) => {
+		if (Array.isArray(value)) {
+			return value.map(v => String.fromCharCode(v));
+		}
+		else if (isString(value) || value === undefined || value === null) {
+			return value;
+		}
+		else {
+			return String.fromCharCode(value);
 		}
 	};
 
@@ -263,6 +283,20 @@ window.addEventListener('load', () => {
 				end: {
 					x: bone.offsetLeft,
 					y: bone.offsetTop,
+				},
+			};
+		}
+		// w:s
+		else if (type === 'lclavicle' || type === 'rclavicle') {
+			const yCenter = bone.offsetTop + bone.clientHeight / 2;
+			return {
+				start: {
+					x: bone.offsetLeft,
+					y: yCenter,
+				},
+				end: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: yCenter,
 				},
 			};
 		}
@@ -453,6 +487,12 @@ window.addEventListener('load', () => {
 				break;
 				case 'rforearm':
 					setNodeValue(nextNode, commandTail(prevNode.value), debug);
+				break;
+				case 'lclavicle':
+					setNodeValue(nextNode, commandToNumbers(prevNode.value), debug);
+				break;
+				case 'rclavicle':
+					setNodeValue(nextNode, commandToString(prevNode.value), debug);
 				break;
 			}
 
