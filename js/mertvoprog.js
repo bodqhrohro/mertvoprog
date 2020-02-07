@@ -19,6 +19,8 @@ window.addEventListener('load', () => {
 			boneRforearm: "кінець",
 			boneSkull: "пожирач",
 			bonePelvis: "висирач",
+			boneLpatella: "забувач",
+			boneRpatella: "пам'ятач",
 
 			error: "Помилка",
 			errOrphanNode: "Вузол без з'єднувача",
@@ -256,7 +258,7 @@ window.addEventListener('load', () => {
 		// collect nodes and connectors
 		bones.forEach(bone => {
 			const type = boneType(bone);
-			if (type === 'skull' || type == 'pelvis') {
+			if (['skull', 'pelvis', 'lpatella', 'rpatella'].includes(type)) {
 				const node = {
 					bone,
 					type,
@@ -377,6 +379,12 @@ window.addEventListener('load', () => {
 				break;
 				case 'pelvis':
 					alert(currentBone.value);
+				break;
+				case 'lpatella':
+					setNodeValue(currentBone, undefined, debug);
+				break;
+				// noop: just store the value
+				case 'rpatella':
 				break;
 			}
 
