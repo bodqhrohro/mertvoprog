@@ -76,6 +76,21 @@ window.addEventListener('load', () => {
 
 	const isString = s => typeof s === 'string' || s instanceof String;
 
+	const isTrue = (value) => {
+		if (Array.isArray(value)) {
+			return value.length > 0;
+		}
+		else if (isString(value)) {
+			return value !== '';
+		}
+		else if (value === undefined || value === null) {
+			return false;
+		}
+		else {
+			return !!value;
+		}
+	};
+
 	// commands
 	const commandAdd = (value, diff) => {
 		const addNumber = (value, diff) => {
@@ -325,10 +340,24 @@ window.addEventListener('load', () => {
 			}
 			// no multi-output nodes for now
 			if (outputs.length > 1) {
-				return {
-					error: 'errManyOutputs',
-					errorBone: node.bone,
-				};
+				// maybe condition?
+				if (outputs.length == 2 && (
+					(outputs[0].type === 'lfemur' && outputs[1].type === 'rfemur') ||
+					(outputs[0].type === 'rfemur' && outputs[1].type === 'lfemur')
+				)) {
+					if (outputs[0].type === 'lfemur') {
+						node.trueConnector = outputs[0];
+						node.falseConnector = outputs[1];
+					} else {
+						node.trueConnector = outputs[1];
+						node.falseConnector = outputs[0];
+					}
+				} else {
+					return {
+						error: 'errManyOutputs',
+						errorBone: node.bone,
+					};
+				}
 			} else if (outputs.length > 0) {
 				node.nextConnector = outputs[0];
 			} else {
@@ -394,7 +423,14 @@ window.addEventListener('load', () => {
 			const prevNode = currentBone;
 			if (currentBone.nextConnector) {
 				currentBone = currentBone.nextConnector;
-			} else {
+			}
+			// evaluate condition
+			else if (currentBone.trueConnector && currentBone.falseConnector) {
+				currentBone = isTrue(currentBone.value)
+					? currentBone.trueConnector
+					: currentBone.falseConnector;
+			}
+			else {
 				break;
 			}
 
