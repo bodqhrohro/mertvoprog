@@ -91,6 +91,9 @@ window.addEventListener('load', () => {
 		else if (isString(value)) {
 			return [...value].map(v => addNumber(v, diff)).join('');
 		}
+		else if (value === undefined || value === null) {
+			return value;
+		}
 		else {
 			return addNumber(value, diff);
 		}
