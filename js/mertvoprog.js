@@ -418,7 +418,6 @@ window.addEventListener('load', () => {
 						(output1.start.x + output1.end.x) / 2 - node.center.x,
 						(output1.start.y + output1.end.y) / 2 - node.center.y
 					);
-					console.log(input0Angle, input1Angle, output0Angle, output1Angle);
 
 					// allowed orders
 					if (
