@@ -23,6 +23,7 @@ window.addEventListener('load', () => {
 			boneRpatella: "пам'ятач",
 			boneLclavicle: "вичисляч",
 			boneRclavicle: "вирядкувач",
+			boneManubrium: "перетинач",
 
 			error: "Помилка",
 			errOrphanNode: "Вузол без з'єднувача",
@@ -31,6 +32,7 @@ window.addEventListener('load', () => {
 			errManyStarts: "Зайвий початковий вузол",
 			errManyOutputs: "Зайві виходи",
 			errPelvisInputRequired: "Нема що висирати",
+			errWrongManubriumConnection: "Заплутаний перетинач",
 		},
 	};
 
@@ -92,6 +94,13 @@ window.addEventListener('load', () => {
 			return !!value;
 		}
 	};
+
+	const areCyclicOrderedFour = (a, b, c, d) => (
+		(a < b && b < c && c < d) ||
+		(b < c && c < d && d < a) ||
+		(c < d && d < a && a < b) ||
+		(d < a && a < b && b < c)
+	);
 
 	// commands
 	const commandAdd = (value, diff) => {
@@ -310,7 +319,7 @@ window.addEventListener('load', () => {
 		// collect nodes and connectors
 		bones.forEach(bone => {
 			const type = boneType(bone);
-			if (['skull', 'pelvis', 'lpatella', 'rpatella'].includes(type)) {
+			if (['skull', 'pelvis', 'lpatella', 'rpatella', 'manubrium'].includes(type)) {
 				const node = {
 					bone,
 					type,
@@ -386,6 +395,56 @@ window.addEventListener('load', () => {
 						node.trueConnector = outputs[1];
 						node.falseConnector = outputs[0];
 					}
+				// manubrium?
+				} else if (node.type === 'manubrium' && inputs.length === 2 && outputs.length === 2) {
+					const input0 = inputs[0];
+					const input1 = inputs[1];
+					const output0 = outputs[0];
+					const output1 = outputs[1];
+
+					const input0Angle = Math.atan2(
+						(input0.start.x + input0.end.x) / 2 - node.center.x,
+						(input0.start.y + input0.end.y) / 2 - node.center.y
+					);
+					const input1Angle = Math.atan2(
+						(input1.start.x + input1.end.x) / 2 - node.center.x,
+						(input1.start.y + input1.end.y) / 2 - node.center.y
+					);
+					const output0Angle = Math.atan2(
+						(output0.start.x + output0.end.x) / 2 - node.center.x,
+						(output0.start.y + output0.end.y) / 2 - node.center.y
+					);
+					const output1Angle = Math.atan2(
+						(output1.start.x + output1.end.x) / 2 - node.center.x,
+						(output1.start.y + output1.end.y) / 2 - node.center.y
+					);
+					console.log(input0Angle, input1Angle, output0Angle, output1Angle);
+
+					// allowed orders
+					if (
+						areCyclicOrderedFour(input0Angle, input1Angle, output0Angle, output1Angle) ||
+						areCyclicOrderedFour(output1Angle, output0Angle, input1Angle, input0Angle)
+					) {
+						node.input0 = input0;
+						node.input1 = input1;
+						node.output0 = output0;
+						node.output1 = output1;
+					}
+					else if (
+						areCyclicOrderedFour(input1Angle, input0Angle, output0Angle, output1Angle) ||
+						areCyclicOrderedFour(output1Angle, output0Angle, input0Angle, input1Angle)
+					) {
+						node.input0 = input0;
+						node.input1 = input1;
+						node.output0 = output1;
+						node.output1 = output0;
+					}
+					else {
+						return {
+							error: 'errWrongManubriumConnection',
+							errorBone: node.bone,
+						};
+					}
 				} else {
 					return {
 						error: 'errManyOutputs',
@@ -437,6 +496,7 @@ window.addEventListener('load', () => {
 
 	const executeCircuit = (circuit, debug) => {
 		let currentBone = circuit.startNode;
+		let lastConnector = null;
 		for (;;) {
 			// process node
 			switch (currentBone.type) {
@@ -463,6 +523,12 @@ window.addEventListener('load', () => {
 				currentBone = isTrue(currentBone.value)
 					? currentBone.trueConnector
 					: currentBone.falseConnector;
+			}
+			// cross
+			else if (currentBone.input0 && currentBone.input1 && currentBone.output0 && currentBone.output1) {
+				currentBone = currentBone.input0 === lastConnector
+					? currentBone.output0
+					: currentBone.output1;
 			}
 			else {
 				break;
@@ -495,6 +561,7 @@ window.addEventListener('load', () => {
 					setNodeValue(nextNode, commandToString(prevNode.value), debug);
 				break;
 			}
+			lastConnector = currentBone;
 
 			// pick next node
 			currentBone = nextNode;
