@@ -539,8 +539,11 @@ window.addEventListener('load', () => {
 			switch (currentBone.type) {
 				case 'lfemur':
 				case 'rfemur':
-					// noop
-					setNodeValue(nextNode, prevNode.value, debug);
+					// preserve value of next node
+					if (prevNode.type !== 'lpatella') {
+						// noop
+						setNodeValue(nextNode, prevNode.value, debug);
+					}
 				break;
 				case 'lbrachial':
 					setNodeValue(nextNode, commandAdd(prevNode.value, 1), debug);
