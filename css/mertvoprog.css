@@ -18,12 +18,14 @@ body {
 
 .bone-menu {
 	display: flex;
+	flex-wrap: wrap;
 	visibility: hidden;
 	position: fixed;
 	transform: scale(0.5) translate(-50%, -50%);
 	z-index: -1;
 	border: 1px solid black;
 	font-size: 0;
+	background: #fff;
 }
 
 .bone-menu-visible {
@@ -33,7 +35,6 @@ body {
 
 .bone-menu-item {
 	border: 1px solid transparent;
-	background: #fff;
 }
 
 .bone-menu-item:hover {
