@@ -128,16 +128,17 @@ window.addEventListener('load', () => {
 	};
 	const commandHead = (value) => {
 		if (Array.isArray(value) || isString(value)) {
-			return value[0];
+			return [value[0], value.slice(1)];
 		} else {
-			return value;
+			return [value, value];
 		}
 	};
 	const commandTail = (value) => {
 		if (Array.isArray(value) || isString(value)) {
-			return value[value.length-1];
+			const lastPos = value.length-1;
+			return [value[lastPos], value.slice(0, lastPos)];
 		} else {
-			return value;
+			return [value, value];
 		}
 	};
 	const commandToNumbers = (value) => {
@@ -548,10 +549,18 @@ window.addEventListener('load', () => {
 					setNodeValue(nextNode, commandAdd(prevNode.value, -1), debug);
 				break;
 				case 'lforearm':
-					setNodeValue(nextNode, commandHead(prevNode.value), debug);
+					{
+						const [next, prev] = commandHead(prevNode.value)
+						setNodeValue(prevNode, prev, debug);
+						setNodeValue(nextNode, next, debug);
+					}
 				break;
 				case 'rforearm':
-					setNodeValue(nextNode, commandTail(prevNode.value), debug);
+					{
+						const [next, prev] = commandTail(prevNode.value)
+						setNodeValue(prevNode, prev, debug);
+						setNodeValue(nextNode, next, debug);
+					}
 				break;
 				case 'lclavicle':
 					setNodeValue(nextNode, commandToNumbers(prevNode.value), debug);
