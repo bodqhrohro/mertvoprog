@@ -3,6 +3,9 @@ window.addEventListener('load', () => {
 	const boneContainer = document.querySelector('.bone-container');
 	const boneArea = document.querySelector('.bone-area');
 	const boneButtonRun = document.querySelector('.bone-button-run');
+	const boneButtonClear = document.querySelector('.bone-button-clear');
+	const boneButtonLoad = document.querySelector('.bone-button-load');
+	const boneButtonSave = document.querySelector('.bone-button-save');
 
 	const DRAG_RADIUS = 20;
 	const ROTATE_REGEX = /transform(\([0-9-]+\)deg)/;
@@ -35,6 +38,8 @@ window.addEventListener('load', () => {
 			errManyOutputs: "Зайві виходи",
 			errPelvisInputRequired: "Нема що висирати",
 			errWrongManubriumConnection: "Заплутаний перетинач",
+
+			msgConfirmClear: "Керму гаплик?",
 		},
 	};
 
@@ -303,9 +308,13 @@ window.addEventListener('load', () => {
 		}
 	};
 
+	const clearBones = () => {
+		[...boneArea.children].forEach((bone) => bone.remove());
+	};
+
 	// storage
 	const serialize = () => {
-		const bones = [...boneArea.children].map((bone) => {
+		return [...boneArea.children].map((bone) => {
 			return {
 				'x': bone.style.left,
 				'y': bone.style.top,
@@ -313,25 +322,33 @@ window.addEventListener('load', () => {
 				'degree': bone.dataset.degree || 0,
 			};
 		});
+	};
+
+	const unserialize = (json) => {
+		const oldBones = JSON.parse(json);
+
+		const imgProtoHash = new Map();
+		for (let img of boneMenu.querySelectorAll('img')) {
+			imgProtoHash.set(img.getAttribute('src'), img);
+		}
+
+		for (let bone of oldBones) {
+			const imgProto = imgProtoHash.get(bone.type);
+			if (imgProto) {
+				newBone(imgProto, bone.x, bone.y, bone.degree || 0);
+			}
+		}
+	};
+
+	const serializeToLocalStorage = () => {
+		const bones = serialize();
 		window.localStorage.setItem('mertvoprog_bones', JSON.stringify(bones));
 	};
 
-	const unserialize = () => {
-		let oldBones = window.localStorage.getItem('mertvoprog_bones');
+	const unserializeFromLocalStorage = () => {
+		const oldBones = window.localStorage.getItem('mertvoprog_bones');
 		if (oldBones) {
-			oldBones = JSON.parse(oldBones);
-
-			const imgProtoHash = new Map();
-			for (let img of boneMenu.querySelectorAll('img')) {
-				imgProtoHash.set(img.getAttribute('src'), img);
-			}
-
-			for (let bone of oldBones) {
-				const imgProto = imgProtoHash.get(bone.type);
-				if (imgProto) {
-					newBone(imgProto, bone.x, bone.y, bone.degree || 0);
-				}
-			}
+			unserialize(oldBones);
 		}
 	};
 
@@ -774,6 +791,54 @@ window.addEventListener('load', () => {
 			boneButtonRun.innerHTML = '';
 		}, 0);
 	});
+	boneButtonClear.addEventListener('click', () => {
+		if (confirm(tr[LANG]['msgConfirmClear'])) {
+			clearBones();
+		}
+	});
+	boneButtonLoad.addEventListener('click', () => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.style.visibility = 'hidden';
+
+		const clear = () => input.remove();
+
+		document.body.appendChild(input);
+		input.addEventListener('change', (e) => {
+			if (e.target.files.length) {
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					clear();
+					clearBones();
+					unserialize(e.target.result);
+				};
+				reader.onerror = clear;
+				reader.onabort = clear;
+				reader.readAsText(e.target.files[0]);
+			}
+		});
+
+		input.click();
+	});
+	boneButtonSave.addEventListener('click', () => {
+		const json = serialize();
+
+		const file = new Blob([json], { type: 'application/json', });
+
+		const a = document.createElement('a');
+		const url = URL.createObjectURL(file);
+
+		a.style.visibility = 'hidden';
+		a.href = url;
+		a.download = 'project.mvprg';
+		document.body.appendChild(a);
+		a.click();
+
+		setTimeout(() => {
+			a.remove();
+			window.URL.revokeObjectURL(url);
+		}, 0);
+	});
 
 	boneArea.addEventListener('mousedown', (e) => {
 		if (e.target.classList && e.target.classList.contains('bone-object-img')) {
@@ -834,6 +899,6 @@ window.addEventListener('load', () => {
 		const type = boneType(bone);
 		bone.children[0].title = tr[LANG]['bone' + type.charAt(0).toUpperCase() + type.slice(1)];
 	}
-	unserialize();
-	window.setInterval(serialize, 5000);
+	unserializeFromLocalStorage();
+	window.setInterval(serializeToLocalStorage, 5000);
 });

@@ -59,24 +59,44 @@ body {
 	pointer-events: none;
 }
 
-.bone-button-run {
+.bone-buttons {
 	position: fixed;
 	bottom: 4em;
 	right: 4em;
+	display: flex;
+	align-items: center;
+}
+
+.bone-button {
+	width: 2em;
+	height: 2em;
+	line-height: 2em;
+	border-radius: 1em;
+	background-color: beige;
+	color: black;
+	text-align: center;
+	box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.4);
+	font-size: 1em;
+	user-select: none;
+	cursor: pointer;
+	display: none;
+	margin: 0.5em;
+}
+
+.bone-button-run {
 	width: 4em;
 	height: 4em;
 	line-height: 4em;
 	border-radius: 2em;
 	background-color: forestgreen;
 	color: white;
-	text-align: center;
-	box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.4);
-	font-size: 1em;
-	user-select: none;
-	cursor: pointer;
 }
 
-.bone-button-run:hover {
+.bone-button-run, .bone-buttons:hover .bone-button {
+	display: block;
+}
+
+.bone-button:hover {
 	box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4) inset;
 }
 
