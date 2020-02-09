@@ -757,8 +757,10 @@ window.addEventListener('load', () => {
 		}
 		e.preventDefault();
 	});
-	boneArea.addEventListener('auxclick', (e) => {
+	boneArea.addEventListener('click', () => {
 		hideBoneMenu();
+	});
+	boneArea.addEventListener('auxclick', (e) => {
 		if (
 			e.target.classList &&
 			e.target.classList.contains('bone-object-img') &&
