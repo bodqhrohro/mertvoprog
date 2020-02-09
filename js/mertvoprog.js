@@ -24,6 +24,8 @@ window.addEventListener('load', () => {
 			boneLclavicle: "вичисляч",
 			boneRclavicle: "вирядкувач",
 			boneManubrium: "перетинач",
+			boneLleg: "причіпляч",
+			boneRleg: "чіпляч",
 
 			error: "Помилка",
 			errOrphanNode: "Вузол без з'єднувача",
@@ -87,7 +89,7 @@ window.addEventListener('load', () => {
 		else if (isString(value)) {
 			return value !== '';
 		}
-		else if (value === undefined || value === null) {
+		else if (isVoid(value)) {
 			return false;
 		}
 		else {
@@ -95,12 +97,18 @@ window.addEventListener('load', () => {
 		}
 	};
 
+	const isVoid = value => value === undefined || value === null;
+
 	const areCyclicOrderedFour = (a, b, c, d) => (
 		(a < b && b < c && c < d) ||
 		(b < c && c < d && d < a) ||
 		(c < d && d < a && a < b) ||
 		(d < a && a < b && b < c)
 	);
+
+	const stringToNumbers = (value) => [...value].map(v => v.charCodeAt(0));
+
+	const numbersToString = (value) => value.map(v => String.fromCharCode(v)).join('');
 
 	// commands
 	const commandAdd = (value, diff) => {
@@ -117,7 +125,7 @@ window.addEventListener('load', () => {
 		else if (isString(value)) {
 			return [...value].map(v => addNumber(v, diff)).join('');
 		}
-		else if (value === undefined || value === null) {
+		else if (isVoid(value)) {
 			return value;
 		}
 		else {
@@ -141,18 +149,116 @@ window.addEventListener('load', () => {
 			return [value, value];
 		}
 	};
-	const commandToNumbers = (value) => {
-		if (isString(value)) {
-			return [...value].map(v => v.charCodeAt(0));
-		} else {
-			return value;
+	const commandPrepend = (prevValue, nextValue) => {
+		if (Array.isArray(nextValue)) {
+			if (Array.isArray(prevValue)) {
+				return prevValue.concat(nextValue);
+			}
+			else if (isString(prevValue)) {
+				return stringToNumbers(prevValue).concat(nextValue);
+			}
+			else if (isVoid(prevValue)) {
+				return nextValue;
+			}
+			else {
+				return [prevValue].concat(nextValue);
+			}
+		}
+		else if (isString(nextValue)) {
+			if (Array.isArray(prevValue)) {
+				return numbersToString(prevValue) + nextValue;
+			}
+			else if (isString(prevValue)) {
+				return prevValue + nextValue;
+			}
+			else if (isVoid(prevValue)) {
+				return nextValue;
+			}
+			else {
+				return String.fromCharCode(prevValue) + nextValue;
+			}
+		}
+		else if (isVoid(nextValue)) {
+			if (Array.isArray(prevValue) || isString(prevValue) || isVoid(prevValue)) {
+				return prevValue;
+			}
+			else {
+				return [prevValue];
+			}
+		}
+		else {
+			if (Array.isArray(prevValue)) {
+				return prevValue.concat([nextValue]);
+			}
+			else if (isString(prevValue)) {
+				return stringToNumbers(prevValue).concat([nextValue]);
+			}
+			else if (isVoid(prevValue)) {
+				return nextValue;
+			}
+			else {
+				return [prevValue, nextValue];
+			}
 		}
 	};
+	const commandAppend = (prevValue, nextValue) => {
+		if (Array.isArray(nextValue)) {
+			if (Array.isArray(prevValue)) {
+				return nextValue.concat(prevValue);
+			}
+			else if (isString(prevValue)) {
+				return nextValue.concat(stringToNumbers(prevValue));
+			}
+			else if (isVoid(prevValue)) {
+				return nextValue;
+			}
+			else {
+				return nextValue.concat([prevValue]);
+			}
+		}
+		else if (isString(nextValue)) {
+			if (Array.isArray(prevValue)) {
+				return nextValue + numbersToString(prevValue);
+			}
+			else if (isString(prevValue)) {
+				return nextValue + prevValue;
+			}
+			else if (isVoid(prevValue)) {
+				return nextValue;
+			}
+			else {
+				return nextValue + String.fromCharCode(prevValue);
+			}
+		}
+		else if (isVoid(nextValue)) {
+			if (Array.isArray(prevValue) || isString(prevValue) || isVoid(prevValue)) {
+				return prevValue;
+			}
+			else {
+				return [prevValue];
+			}
+		}
+		else {
+			if (Array.isArray(prevValue)) {
+				return [nextValue].concat(prevValue);
+			}
+			else if (isString(prevValue)) {
+				return [nextValue].concat(stringToNumbers(prevValue));
+			}
+			else if (isVoid(prevValue)) {
+				return nextValue;
+			}
+			else {
+				return [nextValue, prevValue];
+			}
+		}
+	};
+	const commandToNumbers = (value) => isString(value) ? stringToNumbers(value) : value;
 	const commandToString = (value) => {
 		if (Array.isArray(value)) {
-			return value.map(v => String.fromCharCode(v));
+			return numbersToString(value);
 		}
-		else if (isString(value) || value === undefined || value === null) {
+		else if (isString(value) || isVoid(value)) {
 			return value;
 		}
 		else {
@@ -293,6 +399,32 @@ window.addEventListener('load', () => {
 				end: {
 					x: bone.offsetLeft,
 					y: bone.offsetTop,
+				},
+			};
+		}
+		// ne:se
+		else if (type === 'lleg') {
+			return {
+				start: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: bone.offsetTop,
+				},
+				end: {
+					x: bone.offsetLeft + bone.clientWidth,
+					y: bone.offsetTop + bone.clientHeight,
+				},
+			};
+		}
+		// nw:sw
+		else if (type === 'rleg') {
+			return {
+				start: {
+					x: bone.offsetLeft,
+					y: bone.offsetTop,
+				},
+				end: {
+					x: bone.offsetLeft,
+					y: bone.offsetTop + bone.clientHeight,
 				},
 			};
 		}
@@ -564,6 +696,12 @@ window.addEventListener('load', () => {
 						setNodeValue(prevNode, prev, debug);
 						setNodeValue(nextNode, next, debug);
 					}
+				break;
+				case 'lleg':
+					setNodeValue(nextNode, commandPrepend(prevNode.value, nextNode.value), debug);
+				break;
+				case 'rleg':
+					setNodeValue(nextNode, commandAppend(prevNode.value, nextNode.value), debug);
 				break;
 				case 'lclavicle':
 					setNodeValue(nextNode, commandToNumbers(prevNode.value), debug);
