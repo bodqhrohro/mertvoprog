@@ -753,7 +753,7 @@ window.addEventListener('load', () => {
 			const bone = e.target.parentNode;
 			bone.remove();
 		} else {
-			showBoneMenu(e.x, e.y);
+			showBoneMenu(e.pageX, e.pageY);
 		}
 		e.preventDefault();
 	});
