@@ -316,17 +316,13 @@ window.addEventListener('load', () => {
 	};
 
 	// storage
-	const serialize = () => {
-		return [...boneArea.children].map((bone) => {
-			return {
-				'x': bone.style.left,
-				'y': bone.style.top,
-				'type': bone.children[0].getAttribute('src'),
-				'degree': bone.dataset.degree || 0,
-				'initialValue': bone.dataset.initialValue || null,
-			};
-		});
-	};
+	const serialize = () => JSON.stringify([...boneArea.children].map((bone) => ({
+		'x': bone.style.left,
+		'y': bone.style.top,
+		'type': bone.children[0].getAttribute('src'),
+		'degree': bone.dataset.degree || 0,
+		'initialValue': bone.dataset.initialValue || null,
+	})));
 
 	const unserialize = (json) => {
 		const oldBones = JSON.parse(json);
@@ -345,8 +341,8 @@ window.addEventListener('load', () => {
 	};
 
 	const serializeToLocalStorage = () => {
-		const bones = serialize();
-		window.localStorage.setItem('mertvoprog_bones', JSON.stringify(bones));
+		const json = serialize();
+		window.localStorage.setItem('mertvoprog_bones', json);
 	};
 
 	const unserializeFromLocalStorage = () => {
