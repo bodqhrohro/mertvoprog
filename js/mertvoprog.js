@@ -272,7 +272,7 @@ window.addEventListener('load', () => {
 	};
 
 	// UI
-	const newBone = (proto, x, y, degree) => {
+	const newBone = (proto, x, y, degree, initialValue) => {
 		const newImg = proto.cloneNode();
 		newImg.classList.add('bone-object-img');
 		const imgObject = document.createElement('div');
@@ -280,6 +280,9 @@ window.addEventListener('load', () => {
 		imgObject.style.left = x;
 		imgObject.style.top = y;
 		updateDegree(imgObject, degree);
+		if (initialValue) {
+			imgObject.dataset.initialValue = initialValue;
+		}
 		imgObject.appendChild(newImg);
 		boneArea.appendChild(imgObject);
 	};
@@ -320,6 +323,7 @@ window.addEventListener('load', () => {
 				'y': bone.style.top,
 				'type': bone.children[0].getAttribute('src'),
 				'degree': bone.dataset.degree || 0,
+				'initialValue': bone.dataset.initialValue || null,
 			};
 		});
 	};
@@ -335,7 +339,7 @@ window.addEventListener('load', () => {
 		for (let bone of oldBones) {
 			const imgProto = imgProtoHash.get(bone.type);
 			if (imgProto) {
-				newBone(imgProto, bone.x, bone.y, bone.degree || 0);
+				newBone(imgProto, bone.x, bone.y, bone.degree || 0, bone.initialValue || null);
 			}
 		}
 	};
@@ -474,6 +478,7 @@ window.addEventListener('load', () => {
 					bone,
 					type,
 					center: getBoneCenter(bone),
+					value: 'initialValue' in bone.dataset ? bone.dataset.initialValue : null,
 				};
 				nodes.push(node);
 			} else {
@@ -756,8 +761,19 @@ window.addEventListener('load', () => {
 		}
 		e.preventDefault();
 	});
-	boneArea.addEventListener('click', () => {
+	boneArea.addEventListener('auxclick', (e) => {
 		hideBoneMenu();
+		if (
+			e.target.classList &&
+			e.target.classList.contains('bone-object-img') &&
+			e.target.getAttribute('src') === 'img/rpatella.svg'
+		) {
+			const value = prompt();
+			if (value) {
+				e.target.parentNode.dataset.initialValue = value;
+				e.target.title = value;
+			}
+		}
 	});
 
 	boneMenu.addEventListener('click', (e) => {
@@ -766,7 +782,8 @@ window.addEventListener('load', () => {
 				e.target,
 				parseInt(boneMenu.style.left) + boneContainer.scrollLeft + 'px',
 				parseInt(boneMenu.style.top) + boneContainer.scrollTop + 'px',
-				0
+				0,
+				null,
 			);
 		}
 		hideBoneMenu();
